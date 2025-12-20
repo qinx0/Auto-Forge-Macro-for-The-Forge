@@ -1,5 +1,5 @@
 import sys
-from PySide6.QtWidgets import (
+from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
     QWidget,
@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QVBoxLayout
 )
-from PySide6.QtCore import Qt
+from PyQt6.QtCore import Qt
 
 
 class MainWindow(QMainWindow):
@@ -17,18 +17,15 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Auto Forge Macro")
         self.setMinimumSize(400, 200)
 
-        # Central widget (required for QMainWindow)
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
-        # Widgets
         self.label = QLabel("Ready")
-        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.button = QPushButton("Click me")
         self.button.clicked.connect(self.on_button_clicked)
 
-        # Layout
         layout = QVBoxLayout()
         layout.addWidget(self.label)
         layout.addWidget(self.button)
@@ -41,8 +38,6 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
     window = MainWindow()
     window.show()
-
     sys.exit(app.exec())
