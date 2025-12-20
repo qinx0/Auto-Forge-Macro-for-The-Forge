@@ -1,6 +1,12 @@
 name: Build Executables
 
 on:
+  workflow_dispatch:
+    inputs:
+      pythonFile:
+        description: "Main python file"
+        required: true
+        default: "MACRO.py"
   push:
     branches:
       - main
@@ -14,7 +20,7 @@ jobs:
         os: ['windows-latest', 'ubuntu-latest', 'macos-latest']
 
     env:
-      MAIN_PY_FILE: 'main.py'  # Define the path to your main.py file here
+      MAIN_PY_FILE: pythonFile  # Define the path to your main.py file here
 
     steps:
     - name: Checkout code
