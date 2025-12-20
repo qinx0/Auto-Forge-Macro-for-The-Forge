@@ -43,7 +43,8 @@ jobs:
 
     - name: Build executable
       run: |
-        pyinstaller ${{ github.event.inputs.pythonFile }}
+        pyinstaller --name "The Forge Macro" --windowed --onedir ${{ github.event.inputs.pythonFile }}
+
       working-directory: ./
 
     - name: Create Artifact (Windows)
