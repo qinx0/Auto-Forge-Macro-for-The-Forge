@@ -19,15 +19,15 @@ jobs:
       matrix:
         os: ['windows-latest', 'ubuntu-latest', 'macos-latest']
 
-    env:
-      MAIN_PY_FILE: github.event.inputs.pythonFile  # Define the path to your main.py file here
+    # env:
+    #   MAIN_PY_FILE: github.event.inputs.pythonFile  # Define the path to your main.py file here
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
         python-version: 3.12.x
 
@@ -43,26 +43,26 @@ jobs:
 
     - name: Build executable
       run: |
-        pyinstaller ${{ env.MAIN_PY_FILE }}
+        pyinstaller ${{ github.event.inputs.pythonFile }}
       working-directory: ./
 
     - name: Create Artifact (Windows)
       if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: windows-executables
         path: dist/
 
     - name: Create Artifact (Linux)
       if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: linux-executables
         path: dist/
 
     - name: Create Artifact (macOS)
       if: matrix.os == 'macos-latest'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: macos-executables
         path: dist/
