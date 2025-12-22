@@ -1,9 +1,15 @@
 name: Build Executables
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      pythonFile:
+        description: "Main python file"
+        required: true
+        default: "MACRO.py"
+  # push:
+  #   branches:
+  #     - main
 
 jobs:
   build:
@@ -13,15 +19,15 @@ jobs:
       matrix:
         os: ['windows-latest', 'ubuntu-latest', 'macos-latest']
 
-    env:
-      MAIN_PY_FILE: 'main.py'  # Define the path to your main.py file here
+    # env:
+    #   MAIN_PY_FILE: github.event.inputs.pythonFile  # Define the path to your main.py file here
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
         python-version: 3.12.x
 
@@ -37,26 +43,39 @@ jobs:
 
     - name: Build executable
       run: |
-        pyinstaller ${{ env.MAIN_PY_FILE }}
+        pyinstaller \
+        --name "The Forge Macro" \
+        --windowed \
+        --onedir \
+        --clean \
+        --exclude-module PyQt6.QtBluetooth \
+        --exclude-module PyQt6.Qt3DCore \
+        --exclude-module PyQt6.Qt3DRender \
+        --exclude-module PyQt6.QtWebEngineCore \
+        --exclude-module PyQt6.QtQuick \
+        --exclude-module PyQt6.QtQml \
+        ${{ github.event.inputs.pythonFile }}
+
+
       working-directory: ./
 
     - name: Create Artifact (Windows)
       if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       with:
         name: windows-executables
         path: dist/
 
     - name: Create Artifact (Linux)
       if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       with:
         name: linux-executables
         path: dist/
 
     - name: Create Artifact (macOS)
       if: matrix.os == 'macos-latest'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v6
       with:
         name: macos-executables
         path: dist/
