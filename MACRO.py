@@ -1,6 +1,20 @@
 import sys
 import pyautogui
 import time
+import os
+
+if getattr(sys, 'frozen', False):
+    bundle_dir = os.path.dirname(sys.executable)
+    frameworks_dir = os.path.abspath(
+        os.path.join(bundle_dir, "..", "Frameworks")
+    )
+
+    qt_root = os.path.join(frameworks_dir, "PyQt6", "Qt6")
+
+    os.environ["QT_PLUGIN_PATH"] = os.path.join(qt_root, "plugins")
+    os.environ["QT_QPA_PLATFORM_PLUGIN_PATH"] = os.path.join(
+        qt_root, "plugins", "platforms"
+    )
 
 from PyQt6.QtWidgets import (
     QApplication,
