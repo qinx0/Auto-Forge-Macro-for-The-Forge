@@ -43,7 +43,13 @@ jobs:
 
     - name: Build executable
       run: |
-        pyinstaller --name "The Forge Macro" --windowed --onedir ${{ github.event.inputs.pythonFile }}
+        pyinstaller \
+        --name "The Forge Macro" \
+        --windowed \
+        --onedir \
+        --collect-all PyQt6 \
+        ${{ github.event.inputs.pythonFile }}
+
 
       working-directory: ./
 
