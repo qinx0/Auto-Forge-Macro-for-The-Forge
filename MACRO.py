@@ -2,6 +2,11 @@ import sys
 import pyautogui
 import time
 import os
+from AppKit import (
+    NSWorkspace,
+    NSApplicationActivateIgnoringOtherApps,
+)
+
 
 if getattr(sys, 'frozen', False):
     bundle_dir = os.path.dirname(sys.executable)
@@ -90,6 +95,14 @@ def get_roblox_window():
             )
     return None
 
+def switch_to_application(app_name: str) -> bool:
+    workspace = NSWorkspace.sharedWorkspace()
+    for app in workspace.runningApplications():
+        if app.localizedName() == app_name:
+            app.activateWithOptions_(NSApplicationActivateIgnoringOtherApps)
+            return True
+    return False
+
 # ----------------------------
 # 1st minigame
 # ----------------------------
@@ -108,6 +121,8 @@ def pump_points(win, rel):
 def perform_pump(win, rel):
     x, y_top, y_bottom = pump_points(win, rel)
 
+    switch_to_application("Roblox")
+    time.sleep(0.2)
     # Move to TOP first (important)
     pyautogui.moveTo(x, y_top, duration=0.2)
     time.sleep(0.05)
@@ -139,12 +154,14 @@ def perform_pump(win, rel):
 # ----------------------------
 
 def is_marker(pixel):
-    r, g, b = pixel
-    return r > 220 and g > 220 and b > 220  # white marker
+    r, g, b = pixel[:3]  #ignore alpha if present
+    return r > 220 and g > 220 and b > 220
+
 
 def is_good_zone(pixel):
-    r, g, b = pixel
-    return r > 170 and g > 150 and b < 120  # yellow zone
+    r, g, b = pixel[:3]  #ignore alpha if present
+    return r > 170 and g > 150 and b < 120
+
 
 def find_marker_y(img):
     pixels = img.load()
@@ -177,6 +194,9 @@ def find_good_zone(img):
 
 def play_timing_minigame(win, rel, duration=6.0):
     x, y, w, h = resolve_region(win, rel)
+
+    switch_to_application("Roblox")
+    time.sleep(0.2)
 
     start = time.time()
     holding = False
