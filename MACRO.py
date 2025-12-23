@@ -36,9 +36,18 @@ from Quartz import (
     kCGWindowListOptionOnScreenOnly
 )
 
-# ----------------------------
+# --------------------------------------------------------------------
 # Relative region definitions
-# ----------------------------
+# PS: Regardless of ui scale the forge minigame's sizes are consistent
+# --------------------------------------------------------------------
+
+PROGRESS_BAR_REL = {
+    "x": 0.10,
+    "y": 0.93,
+    "w": 0.80,
+    "h": 0.02,
+}
+
 
 TIMING_BAR_REL = {
     "x": 0.888,
@@ -53,7 +62,6 @@ PUMP_REL = {
     "w": 0.10,
     "h": 0.30,
 }
-
 
 # ----------------------------
 # Debug
@@ -135,7 +143,7 @@ def perform_pump(win, rel):
     #     pyautogui.moveTo(x, y_top, duration=0.05)
     while True:
         try:
-            finishedPumpLocation = pyautogui.locateOnScreen("pumpFinished.png", confidence=0.5)
+            finishedPumpLocation = pyautogui.locateOnScreen("pumpFinished.png", confidence=0.6)
             print(f'found finished pump bar at {finishedPumpLocation}')
             pyautogui.mouseDown()
             pyautogui.moveTo(x, y_bottom, duration=0.05)
@@ -258,13 +266,21 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Auto Forge Macro")
-        self.setFixedSize(420, 240)
+        self.setFixedSize(420, 300)
 
-        self.label = QLabel("Ready")
-        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.infolabel = QLabel("Ready")
+        self.infolabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.detect_button = QPushButton("Test Auto-Detect Minigame Bar")
-        self.detect_button.clicked.connect(self.test_auto_detect_2ndminigame_bar)
+        self.warninglabel = QLabel(
+            "** Make sure Roblox is running in windowed mode, but full size **\n** UI scaling doesnt affect size of minigame bars **"
+            )
+        self.warninglabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.detect_button1 = QPushButton("Test Auto-Detect 2nd Minigame Bar")
+        self.detect_button1.clicked.connect(self.test_auto_detect_2ndminigame_bar)
+
+        self.detect_button2 = QPushButton("Test Auto-Detect 2nd Minigame Progress Bar")
+        self.detect_button2.clicked.connect(self.test_auto_detect_2ndminigame_progress_bar)
 
         self.timing_button = QPushButton("Test Timing Minigame")
         self.timing_button.clicked.connect(self.test_timing)
@@ -272,27 +288,65 @@ class MainWindow(QMainWindow):
         self.pump_button = QPushButton("Test Pump Minigame")
         self.pump_button.clicked.connect(self.test_pump)
 
+        self.detect_button3 = QPushButton("Test Auto-Detect 1st Minigame Pump")
+        self.detect_button3.clicked.connect(self.test_auto_detect_1stminigame_pump)
+
         layout = QVBoxLayout()
+        layout.addWidget(self.warninglabel)
+        layout.addWidget(self.detect_button3)
         layout.addWidget(self.pump_button)
-        layout.addWidget(self.label)
-        layout.addWidget(self.detect_button)
+        layout.addWidget(self.infolabel)
+        layout.addWidget(self.detect_button1)
+        layout.addWidget(self.detect_button2)
         layout.addWidget(self.timing_button)
 
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
+    
+    def test_auto_detect_1stminigame_pump(self):
+        win = get_roblox_window()
+
+        if not win:
+            self.infolabel.setText("❌ Roblox window not found")
+            return
+
+        region = resolve_region(win, PUMP_REL)
+        x, y, w, h = region
+
+        self.infolabel.setText(f"Bar: x={x}, y={y}, w={w}, h={h}")
+
+        # Visual confirmation
+        img = pyautogui.screenshot(region=region)
+        img.show()
 
     def test_auto_detect_2ndminigame_bar(self):
         win = get_roblox_window()
 
         if not win:
-            self.label.setText("❌ Roblox window not found")
+            self.infolabel.setText("❌ Roblox window not found")
             return
 
         region = resolve_region(win, TIMING_BAR_REL)
         x, y, w, h = region
 
-        self.label.setText(f"Bar: x={x}, y={y}, w={w}, h={h}")
+        self.infolabel.setText(f"Bar: x={x}, y={y}, w={w}, h={h}")
+
+        # Visual confirmation
+        img = pyautogui.screenshot(region=region)
+        img.show()
+
+    def test_auto_detect_2ndminigame_progress_bar(self):
+        win = get_roblox_window()
+
+        if not win:
+            self.infolabel.setText("❌ Roblox window not found")
+            return
+
+        region = resolve_region(win, PROGRESS_BAR_REL)
+        x, y, w, h = region
+
+        self.infolabel.setText(f"Bar: x={x}, y={y}, w={w}, h={h}")
 
         # Visual confirmation
         img = pyautogui.screenshot(region=region)
@@ -309,22 +363,22 @@ class MainWindow(QMainWindow):
     def test_pump(self):
         win = get_roblox_window()
         if not win:
-            self.label.setText("❌ Roblox not found")
+            self.infolabel.setText("❌ Roblox not found")
             return
 
-        self.label.setText("⛏ Pumping...")
+        self.infolabel.setText("⛏ Pumping...")
         perform_pump(win, PUMP_REL)
-        self.label.setText("✅ Pump done")
+        self.infolabel.setText("✅ Pump done")
 
     def test_timing(self):
         win = get_roblox_window()
         if not win:
-            self.label.setText("❌ Roblox not found")
+            self.infolabel.setText("❌ Roblox not found")
             return
 
-        self.label.setText("⏱ Stabilizing bar...")
+        self.infolabel.setText("⏱ Stabilizing bar...")
         play_timing_minigame(win, TIMING_BAR_REL)
-        self.label.setText("✅ Timing done")
+        self.infolabel.setText("✅ Timing done")
 
 
 
