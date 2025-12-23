@@ -35,7 +35,7 @@ from Quartz import (
 # Relative region definitions
 # ----------------------------
 
-MINIGAME_BAR_REL = {
+TIMING_BAR_REL = {
     "x": 0.888,
     "y": 0.19,
     "w": 0.05,
@@ -90,15 +90,9 @@ def get_roblox_window():
             )
     return None
 
-
-def resolve_region(win, rel):
-    wx, wy, ww, wh = win
-    return (
-        int(wx + rel["x"] * ww),
-        int(wy + rel["y"] * wh),
-        int(rel["w"] * ww),
-        int(rel["h"] * wh),
-    )
+# ----------------------------
+# 1st minigame
+# ----------------------------
 
 def pump_points(win, rel):
     wx, wy, ww, wh = win
@@ -140,6 +134,97 @@ def perform_pump(win, rel):
 
     pyautogui.mouseUp()
 
+# ----------------------------
+# 2nd minigame
+# ----------------------------
+
+def is_marker(pixel):
+    r, g, b = pixel
+    return r > 220 and g > 220 and b > 220  # white marker
+
+def is_good_zone(pixel):
+    r, g, b = pixel
+    return r > 170 and g > 150 and b < 120  # yellow zone
+
+def find_marker_y(img):
+    pixels = img.load()
+    w, h = img.size
+    x = w // 2  # center of bar
+
+    for y in range(h):
+        if is_marker(pixels[x, y]):
+            return y
+    return None
+
+def find_good_zone(img):
+    pixels = img.load()
+    w, h = img.size
+    x = w // 2
+
+    top = None
+    bottom = None
+
+    for y in range(h):
+        if is_good_zone(pixels[x, y]):
+            if top is None:
+                top = y
+            bottom = y
+
+    if top is None:
+        return None
+
+    return top, bottom
+
+def play_timing_minigame(win, rel, duration=6.0):
+    x, y, w, h = resolve_region(win, rel)
+
+    start = time.time()
+    holding = False
+
+    while time.time() - start < duration:
+        img = pyautogui.screenshot(region=(x, y, w, h))
+
+        marker_y = find_marker_y(img)
+        zone = find_good_zone(img)
+
+        if marker_y is None or zone is None:
+            continue
+
+        zone_top, zone_bottom = zone
+        zone_center = (zone_top + zone_bottom) // 2
+
+        if marker_y > zone_center + 3:
+            # Marker too LOW → go UP
+            if not holding:
+                pyautogui.mouseDown()
+                holding = True
+
+        elif marker_y < zone_center - 3:
+            # Marker too HIGH → go DOWN
+            if holding:
+                pyautogui.mouseUp()
+                holding = False
+
+        else:
+            # Inside zone → gentle hold
+            if not holding:
+                pyautogui.mouseDown()
+                holding = True
+
+        time.sleep(0.01)
+
+    if holding:
+        pyautogui.mouseUp()
+
+def resolve_region(win, rel):
+    wx, wy, ww, wh = win
+    return (
+        int(wx + rel["x"] * ww),
+        int(wy + rel["y"] * wh),
+        int(rel["w"] * ww),
+        int(rel["h"] * wh),
+    )
+
 
 # ----------------------------
 # Main PyQt6 Window
@@ -156,7 +241,10 @@ class MainWindow(QMainWindow):
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.detect_button = QPushButton("Test Auto-Detect Minigame Bar")
-        self.detect_button.clicked.connect(self.test_auto_detect)
+        self.detect_button.clicked.connect(self.test_auto_detect_2ndminigame_bar)
+
+        self.timing_button = QPushButton("Test Timing Minigame")
+        self.timing_button.clicked.connect(self.test_timing)
 
         self.pump_button = QPushButton("Test Pump Minigame")
         self.pump_button.clicked.connect(self.test_pump)
@@ -165,19 +253,20 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.pump_button)
         layout.addWidget(self.label)
         layout.addWidget(self.detect_button)
+        layout.addWidget(self.timing_button)
 
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
 
-    def test_auto_detect(self):
+    def test_auto_detect_2ndminigame_bar(self):
         win = get_roblox_window()
 
         if not win:
             self.label.setText("❌ Roblox window not found")
             return
 
-        region = resolve_region(win, MINIGAME_BAR_REL)
+        region = resolve_region(win, TIMING_BAR_REL)
         x, y, w, h = region
 
         self.label.setText(f"Bar: x={x}, y={y}, w={w}, h={h}")
@@ -203,6 +292,17 @@ class MainWindow(QMainWindow):
         self.label.setText("⛏ Pumping...")
         perform_pump(win, PUMP_REL)
         self.label.setText("✅ Pump done")
+
+    def test_timing(self):
+        win = get_roblox_window()
+        if not win:
+            self.label.setText("❌ Roblox not found")
+            return
+
+        self.label.setText("⏱ Stabilizing bar...")
+        play_timing_minigame(win, TIMING_BAR_REL)
+        self.label.setText("✅ Timing done")
+
 
 
 

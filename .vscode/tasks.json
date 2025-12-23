@@ -30,6 +30,15 @@
                 "isDefault": true
             },
             "problemMatcher": []
+        },
+        {
+            "label": "Run MACRO (Qt Safe)",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "args": ["${workspaceFolder}/MACRO.py"],
+            "options": {
+                "env": { "QT_QPA_PLATFORM": "cocoa" }
+            }
         }
     ]
 }
