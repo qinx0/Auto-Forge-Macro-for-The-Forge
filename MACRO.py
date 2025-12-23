@@ -215,17 +215,20 @@ def play_timing_minigame(win, rel, duration=6.0):
 
         if marker_y > zone_center + 3:
             # Marker too LOW → go UP
+            print( "Marker too LOW → go UP" )
             if not holding:
                 pyautogui.mouseDown()
                 holding = True
 
         elif marker_y < zone_center - 3:
             # Marker too HIGH → go DOWN
+            print( "Marker too HIGH → go DOWN" )
             if holding:
                 pyautogui.mouseUp()
                 holding = False
 
         else:
+            print( "Inside zone → gentle hold" )
             # Inside zone → gentle hold
             if not holding:
                 pyautogui.mouseDown()
